@@ -1,10 +1,20 @@
 import configparser
 import json
 import os
-from distutils.util import strtobool
 from typing import Union
 
 from sqlalchemy.engine.url import URL
+
+# distutils (and distutils.util.strtobool) was removed in Python 3.12 -- inlined here rather
+# than adding a new dependency, since this is distutils' own documented implementation
+# verbatim, not a reinvention.
+def strtobool(value):
+    value = str(value).lower()
+    if value in ("y", "yes", "t", "true", "on", "1"):
+        return 1
+    elif value in ("n", "no", "f", "false", "off", "0"):
+        return 0
+    raise ValueError(f"invalid truth value {value!r}")
 
 _FORCED_EXTRA_CONFIG_TYPES = {}
 
@@ -138,6 +148,13 @@ class ServerConfig(object):
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
     if CACHE_REDIS_URL:
         CACHE_TYPE: str = "redis"
+        # Namespaces this deployment's Flask-Caching keys (e.g. the @cache.memoize() on
+        # _get_config -- CTFd/utils/__init__.py) within a Redis instance that may be shared
+        # with another, entirely separate CTFd deployment (different database, same Redis).
+        # Without this, both deployments' cached config reads collide on the same keys,
+        # so one deployment silently sees the other's is_setup()/config values. Unset by
+        # default -- a deployment that owns its Redis instance outright doesn't need it.
+        CACHE_KEY_PREFIX: str = os.environ.get("CACHE_KEY_PREFIX", "")
     else:
         CACHE_TYPE: str = "filesystem"
         CACHE_DIR: str = os.path.join(

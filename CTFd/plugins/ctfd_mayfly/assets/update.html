@@ -1,0 +1,49 @@
+{% extends "admin/challenges/update.html" %}
+
+{% block value %}
+{{ super() }}
+
+<div class="form-group">
+	<label>
+		Image (Vercel Container Registry reference)<br>
+		<small class="form-text text-muted">
+			The orchestrator only pulls from VCR, never an external registry directly.
+		</small>
+	</label>
+	<input type="text" class="form-control" name="image" value="{{ challenge.image }}" required>
+</div>
+
+<div class="form-group">
+	<label>
+		Port<br>
+	</label>
+	<input type="number" class="form-control" name="port" value="{{ challenge.port }}" required>
+</div>
+
+<div class="form-group">
+	<label>
+		TTL (seconds)<br>
+		<small class="form-text text-muted">
+			Keep comfortably under 2400 on Vercel Hobby plans -- see create form for why.
+		</small>
+	</label>
+	<input type="number" class="form-control" name="ttl_seconds" value="{{ challenge.ttl_seconds }}" required>
+</div>
+
+<div class="form-group">
+	<label>
+		vCPUs<br>
+	</label>
+	<input type="number" class="form-control" name="vcpus" value="{{ challenge.vcpus }}" required>
+</div>
+
+<div class="form-group">
+	<label>
+		Start command (optional)<br>
+		<small class="form-text text-muted">
+			Leave blank to use the image's own <code>/start.sh</code>.
+		</small>
+	</label>
+	<input type="text" class="form-control" name="start_command" value="{{ challenge.start_command | default('', true) }}">
+</div>
+{% endblock %}

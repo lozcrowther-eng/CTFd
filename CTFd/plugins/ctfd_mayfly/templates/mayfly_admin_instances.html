@@ -1,0 +1,99 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+	<div class="container">
+		<h1>Mayfly Instances</h1>
+	</div>
+</div>
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<h4>Live &amp; recent instances</h4>
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Owner</th>
+						<th>Challenge</th>
+						<th>State</th>
+						<th>Expires</th>
+						<th>Run ID</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for instance in instances %}
+					<tr>
+						<td>{{ accounts.get(instance.owner_id, instance.owner_id) }}</td>
+						<td>{{ challenges.get(instance.challenge_id, instance.challenge_id) }}</td>
+						<td>{{ instance.state }}</td>
+						<td>{{ instance.expires_at or "" }}</td>
+						<td><code>{{ instance.run_id }}</code></td>
+						<td>
+							{% if instance.is_live %}
+							<button
+								type="button"
+								class="btn btn-sm btn-danger mayfly-kill-btn"
+								data-run-id="{{ instance.run_id }}"
+							>Kill</button>
+							{% endif %}
+						</td>
+					</tr>
+					{% else %}
+					<tr><td colspan="6" class="text-center text-muted">No instances yet.</td></tr>
+					{% endfor %}
+				</tbody>
+			</table>
+
+			<h4 class="mt-4">Flag-sharing events</h4>
+			<p class="text-muted">
+				Logged whenever a submitted flag's digest matched another team's instance
+				instead of the submitting team's own — see challenge.py's attempt().
+			</p>
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Challenge</th>
+						<th>Submitted by</th>
+						<th>Flag belonged to</th>
+						<th>When</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for event in share_events %}
+					<tr>
+						<td>{{ challenges.get(event.challenge_id, event.challenge_id) }}</td>
+						<td>{{ accounts.get(event.submitting_owner_id, event.submitting_owner_id) }}</td>
+						<td>{{ accounts.get(event.source_owner_id, event.source_owner_id) }}</td>
+						<td>{{ event.created_at }}</td>
+					</tr>
+					{% else %}
+					<tr><td colspan="4" class="text-center text-muted">No flag-sharing events logged.</td></tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+<script>
+(function () {
+	document.querySelectorAll(".mayfly-kill-btn").forEach(function (btn) {
+		btn.addEventListener("click", function () {
+			var runId = btn.getAttribute("data-run-id");
+			btn.disabled = true;
+			fetch("/plugins/ctfd_mayfly/admin/instances/" + encodeURIComponent(runId) + "/kill", {
+				method: "POST",
+				credentials: "same-origin",
+			})
+				.then(function () {
+					window.location.reload();
+				})
+				.catch(function () {
+					btn.disabled = false;
+				});
+		});
+	});
+})();
+</script>
+{% endblock %}

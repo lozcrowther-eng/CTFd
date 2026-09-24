@@ -1,0 +1,6 @@
+{% extends "challenge.html" %}
+{# No block overrides needed -- the Launch/status panel is injected via view.js's
+   postRender hook (right before .submit-row), not through a Jinja block. That keeps this
+   challenge type working the same way regardless of which blocks a given theme's
+   challenge.html happens to expose, at the cost of the panel being plain DOM/fetch rather
+   than wired into the theme's own Alpine.js reactivity. #}

@@ -1,7 +1,8 @@
 import sys
 import time
-from distutils.version import StrictVersion
 from platform import python_version
+
+from packaging.version import Version as StrictVersion
 
 import requests
 from flask import current_app as app

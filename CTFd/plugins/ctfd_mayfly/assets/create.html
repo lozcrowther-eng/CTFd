@@ -1,0 +1,71 @@
+{% extends "admin/challenges/create.html" %}
+
+{% block header %}
+<div class="alert alert-secondary" role="alert">
+	Mayfly challenges run as ephemeral Vercel Sandboxes provisioned by the orchestrator, one
+	per team, with a fresh dynamic flag minted per instance rather than a static answer.
+</div>
+{% endblock %}
+
+{% block value %}
+{{ super() }}
+
+<div class="form-group">
+	<label>
+		Image (Vercel Container Registry reference)<br>
+		<small class="form-text text-muted">
+			e.g. <code>my-repo:latest</code>, or <code>team-slug/project-slug/my-repo:tag</code>
+			for an image in a different project. The orchestrator only pulls from VCR, never
+			an external registry directly.
+		</small>
+	</label>
+	<input type="text" class="form-control" name="image" placeholder="my-repo:latest" required>
+</div>
+
+<div class="form-group">
+	<label>
+		Port<br>
+		<small class="form-text text-muted">
+			The port the challenge listens on inside its sandbox.
+		</small>
+	</label>
+	<input type="number" class="form-control" name="port" value="3000" required>
+</div>
+
+<div class="form-group">
+	<label>
+		TTL (seconds)<br>
+		<small class="form-text text-muted">
+			How long an instance runs before it's reaped. Vercel Hobby plans cap the
+			underlying sandbox session at 45 minutes total (the orchestrator adds a 300s
+			grace buffer on top of this), so keep this comfortably under 2400.
+		</small>
+	</label>
+	<input type="number" class="form-control" name="ttl_seconds" value="1800" required>
+</div>
+
+<div class="form-group">
+	<label>
+		vCPUs<br>
+		<small class="form-text text-muted">
+			Sandbox vCPUs to allocate (2 GB RAM per vCPU).
+		</small>
+	</label>
+	<input type="number" class="form-control" name="vcpus" value="1" required>
+</div>
+
+<div class="form-group">
+	<label>
+		Start command (optional)<br>
+		<small class="form-text text-muted">
+			Leave blank to use the image's own <code>/start.sh</code> (the orchestrator's
+			convention). Only needed for an untouched image that doesn't follow it.
+		</small>
+	</label>
+	<input type="text" class="form-control" name="start_command" placeholder="(uses /start.sh if blank)">
+</div>
+{% endblock %}
+
+{% block type %}
+<input type="hidden" value="mayfly" name="type" id="chaltype">
+{% endblock %}

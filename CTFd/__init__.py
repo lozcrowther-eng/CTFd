@@ -3,7 +3,7 @@ import os
 import sys
 import time
 import weakref
-from distutils.version import StrictVersion
+from packaging.version import Version as StrictVersion
 
 import jinja2
 from flask import Flask, Request
