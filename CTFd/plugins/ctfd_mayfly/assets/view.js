@@ -481,6 +481,15 @@ CTFd._internal.challenge.preRender = function () {};
       credentials: "same-origin",
     })
       .then(function (res) {
+        // A session the server no longer recognizes (an auth blip, not necessarily a real
+        // logout) makes @authed_only redirect to /login, and fetch() follows that silently --
+        // res.ok is still true, but the body is the login page's HTML, not JSON. Checking
+        // content-type here turns that into one clear, actionable message instead of the
+        // cryptic "Unexpected token '<'" a directly-.json()'d HTML body produces.
+        var contentType = res.headers.get("content-type") || "";
+        if (!res.ok || contentType.indexOf("application/json") === -1) {
+          throw new Error("session no longer recognized -- refresh the page");
+        }
         return res.json();
       })
       .then(function (data) {
