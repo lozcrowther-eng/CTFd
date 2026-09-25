@@ -135,9 +135,19 @@ def current():
     player having to click it again just to rediscover an instance that was never actually
     lost (it's sitting fine in this table the whole time -- the browser just never re-asked
     for it, since currentRunId only ever lived in an in-memory JS closure)."""
-    challenge_id = request.args.get("challenge_id")
-    if not challenge_id:
+    raw_challenge_id = request.args.get("challenge_id")
+    if not raw_challenge_id:
         return jsonify({"error": "challenge_id is required"}), 400
+
+    # request.args is always a string. On Postgres, filtering an integer column against a
+    # non-numeric string (a stale/empty DOM read on the client produces "NaN" or "undefined")
+    # raises an unhandled DataError, which Flask turns into an HTML 500 -- exactly the
+    # "Unexpected token '<'" JSON-parse error the frontend reports. SQLite never surfaced this
+    # since it coerces loosely; validate here so a bad client value fails clean instead.
+    try:
+        challenge_id = int(raw_challenge_id)
+    except ValueError:
+        return jsonify({"error": "challenge_id must be an integer"}), 400
 
     owner_id = resolve_owner_id()
     if owner_id is None:

@@ -93,3 +93,5 @@ CTFd/themes/*
 !CTFd/themes/admin/
 !CTFd/themes/core/
 !CTFd/themes/core-deprecated/
+.vercel
+.env*

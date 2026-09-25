@@ -469,6 +469,14 @@ CTFd._internal.challenge.preRender = function () {};
    * rediscover it via launch()'s own idempotent return.
    */
   function resumeIfLive(challengeId) {
+    // currentChallengeId() reads #challenge-id's value, which CTFd's own theme JS populates
+    // asynchronously right after the modal opens. Caught before that write lands, the field
+    // is still "" and parseInt gives NaN here -- sending that through would 500 on the
+    // Postgres-backed API (see api.py's current(), which now rejects it too), but the real
+    // fix is to just not ask yet: bail and let the next resumeIfLive call (a later modal
+    // open) find the field populated.
+    if (challengeId === null || isNaN(challengeId)) return;
+
     fetch("/plugins/ctfd_mayfly/current?challenge_id=" + encodeURIComponent(challengeId), {
       credentials: "same-origin",
     })
